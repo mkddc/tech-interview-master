@@ -12,7 +12,6 @@ var cartsArray = [];
 
 // Parcours de chaque cart :
 carts.forEach( function(cart, index) {
-	// console.log('cart :');	
 	// console.log(cart);
 	// console.log('++++++++');
 	var total = 0;
@@ -20,9 +19,6 @@ carts.forEach( function(cart, index) {
 
 	// Pour chaque cart, parcours de chaque élément de 'items' :
 	cart['items'].forEach( function(item, indx) {
-		// console.log('item :');	
-		// console.log(item);
-		// console.log('++++++++');
 
 		var article_id = item['article_id'];
 		var quantity = item['quantity'];
@@ -32,35 +28,38 @@ carts.forEach( function(cart, index) {
 		var itemPrice = articles[article_id - 1]['price'];
 		var price = itemPrice*quantity;
 
-		// tarif à appliquer en plus :
-		var feeToApply = 0;
+		total += price;
+		// console.log('total');
+		// console.log(total);
 
-		// Parcours des delivery fees afin de voir dans quelle tranche
-		// le prix du cart se situe:
-		var feeToApply = 0;
-
-		deliveryFees.forEach( function(typeFee, index) {
-			console.log('price');
-			console.log(price);
-			console.log('typeFee');
-			console.log(typeFee);
-			minPrice = typeFee['eligible_transaction_volume']['min_price'];
-			console.log('minPrice');
-			console.log(minPrice);
-			maxPrice = typeFee['eligible_transaction_volume']['max_price'];
-			console.log('maxPrice');
-			console.log(maxPrice);
-			// Je fais le choix d'inclure le maxPrice et d'exclure le minPrice
-			// car les inclusions de bornes ne sont pas précisées
-			if (price > minPrice && price <= maxPrice ) {
-				feeToApply = typeFee['price'];
-				return;
-			}
-		});
-
-
-		total += price + feeToApply;
 	});
+
+	// Parcours des delivery fees afin de voir dans quelle tranche
+	// le prix du cart se situe:
+	var feeToApply = 0;
+
+	deliveryFees.forEach( function(typeFee, index) {
+
+		minPrice = typeFee['eligible_transaction_volume']['min_price'];
+		
+		// console.log('minPrice');
+		// console.log(minPrice);
+		
+		maxPrice = typeFee['eligible_transaction_volume']['max_price'];
+		
+		// console.log('maxPrice');
+		// console.log(maxPrice);
+		
+		// Je fais le choix d'inclure le minPrice et d'exclure le maxPrice
+		// car les inclusions de bornes ne sont pas précisées
+		if (total >= minPrice && total < maxPrice ) {
+			feeToApply = typeFee['price'];
+			return;
+		}
+	});
+
+	// Rajout des frais de livraison au total du cart:
+	total += feeToApply; 
 
 	cartsArray.push({
 		'id': id,
